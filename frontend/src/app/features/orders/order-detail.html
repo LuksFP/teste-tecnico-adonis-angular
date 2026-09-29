@@ -1,0 +1,116 @@
+<a class="back-link" routerLink="/orders">← Pedidos</a>
+
+@if (order.error(); as error) {
+  <div class="state state--error">
+    <p>{{ error.message }}</p>
+    <a class="btn btn--ghost" routerLink="/orders">Voltar para a lista</a>
+  </div>
+} @else if (order.value(); as current) {
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Pedido</p>
+      <h1 class="page-title mono">#{{ current.id }}</h1>
+    </div>
+    <app-status-badge [status]="current.status" />
+  </header>
+
+  <ol
+    class="flow"
+    [class.flow--canceled]="current.status === 'canceled'"
+    aria-label="Andamento do pedido"
+  >
+    @for (step of flow; track step) {
+      <li
+        class="flow__step flow__step--{{ stepState(current, step) }}"
+        [attr.aria-current]="stepState(current, step) === 'current' ? 'step' : null"
+      >
+        {{ statusLabel[step] }}
+      </li>
+    }
+  </ol>
+  @if (current.status === 'canceled') {
+    <p class="note note--danger">Pedido cancelado. O status não pode mais ser alterado.</p>
+  }
+
+  <div class="detail">
+    <section class="panel detail__main" aria-labelledby="items-title">
+      @if (current.status === 'completed' || current.status === 'canceled') {
+        <span class="stamp stamp--{{ current.status }}" aria-hidden="true">{{
+          statusLabel[current.status]
+        }}</span>
+      }
+      <h2 class="panel__title" id="items-title">Itens</h2>
+      <table class="table table--compact">
+        <thead>
+          <tr>
+            <th scope="col">Produto</th>
+            <th scope="col" class="num">Qtd.</th>
+            <th scope="col" class="num">Preço unit.</th>
+            <th scope="col" class="num">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of current.items ?? []; track item.id) {
+            <tr>
+              <td>{{ item.product?.name ?? 'Produto #' + item.productId }}</td>
+              <td class="num mono">{{ item.quantity }}</td>
+              <td class="num mono">{{ item.unitPriceCents | money }}</td>
+              <td class="num mono">{{ item.totalCents | money }}</td>
+            </tr>
+          }
+        </tbody>
+        <tfoot>
+          <tr>
+            <th scope="row" colspan="3">Total do pedido</th>
+            <td class="num mono total">{{ current.totalCents | money }}</td>
+          </tr>
+        </tfoot>
+      </table>
+      <p class="hint">Os preços são os do momento em que o pedido foi feito.</p>
+    </section>
+
+    <aside class="detail__side">
+      <dl class="facts">
+        <div>
+          <dt>Cliente</dt>
+          <dd>{{ current.customer?.name }}</dd>
+        </div>
+        <div>
+          <dt>Telefone</dt>
+          <dd class="mono">{{ current.customer?.phone }}</dd>
+        </div>
+        <div>
+          <dt>Criado em</dt>
+          <dd>{{ current.createdAt | date: "dd/MM/yyyy 'às' HH:mm" }}</dd>
+        </div>
+      </dl>
+
+      @if (forwardActions().length || canCancel()) {
+        <div class="status-actions">
+          @for (next of forwardActions(); track next) {
+            <button
+              type="button"
+              class="btn btn--primary btn--block"
+              [disabled]="changing() !== null"
+              (click)="changeStatus(next)"
+            >
+              {{ changing() === next ? 'Salvando…' : statusAction[next] }}
+            </button>
+          }
+          @if (canCancel()) {
+            <button
+              type="button"
+              class="btn btn--danger btn--block"
+              [disabled]="changing() !== null"
+              (click)="changeStatus('canceled')"
+            >
+              {{ changing() === 'canceled' ? 'Cancelando…' : statusAction.canceled }}
+            </button>
+          }
+        </div>
+      }
+    </aside>
+  </div>
+} @else {
+  <p class="state">Carregando pedido…</p>
+}

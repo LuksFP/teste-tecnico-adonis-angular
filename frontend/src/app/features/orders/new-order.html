@@ -1,0 +1,207 @@
+<a class="back-link" routerLink="/orders">← Pedidos</a>
+
+<header class="page-header">
+  <div>
+    <p class="eyebrow">Balcão</p>
+    <h1 class="page-title">Novo pedido</h1>
+  </div>
+</header>
+
+<div class="order-builder">
+  <div class="order-builder__main">
+    <section class="panel" aria-labelledby="customer-title">
+      <h2 class="panel__title" id="customer-title"><span class="step-number">1</span> Cliente</h2>
+      @if (customers.hasValue()) {
+        <label class="field">
+          <span class="sr-only">Cliente do pedido</span>
+          <select
+            #c
+            class="input"
+            [value]="customerId() ?? ''"
+            (change)="selectCustomer(c.value)"
+            [attr.aria-invalid]="missingCustomer()"
+          >
+            <option value="">Selecione o cliente…</option>
+            @for (option of customers.value().data; track option.id) {
+              <option [value]="option.id">{{ option.name }} · {{ option.phone }}</option>
+            }
+          </select>
+          @if (missingCustomer()) {
+            <small class="field__error">Selecione o cliente do pedido.</small>
+          }
+        </label>
+        @if (customers.value().data.length === 0) {
+          <p class="hint">
+            Nenhum cliente cadastrado. <a routerLink="/customers">Cadastre um cliente</a> primeiro.
+          </p>
+        }
+      } @else if (customers.error()) {
+        <p class="field__error">Não foi possível carregar os clientes.</p>
+      } @else {
+        <p class="hint">Carregando clientes…</p>
+      }
+    </section>
+
+    <section class="panel" aria-labelledby="items-title">
+      <h2 class="panel__title" id="items-title"><span class="step-number">2</span> Produtos</h2>
+
+      <div class="picker">
+        <label class="field field--grow">
+          <span class="field__label">Produto</span>
+          <select
+            #p
+            class="input"
+            [value]="productId() ?? ''"
+            (change)="selectProduct(p.value)"
+            [disabled]="!products.hasValue()"
+          >
+            <option value="">Escolha um produto…</option>
+            @for (product of products.value()?.data ?? []; track product.id) {
+              <option [value]="product.id">
+                {{ product.name }} — {{ product.priceCents | money }}
+              </option>
+            }
+          </select>
+        </label>
+        <label class="field field--qty">
+          <span class="field__label">Qtd.</span>
+          <input
+            #qty
+            class="input mono"
+            type="number"
+            [min]="minQuantity"
+            [max]="maxQuantity"
+            step="1"
+            [value]="quantity()"
+            (input)="quantity.set(qty.valueAsNumber)"
+            (keydown.enter)="addItem()"
+          />
+        </label>
+        <button
+          type="button"
+          class="btn btn--dark"
+          [disabled]="productId() === null"
+          (click)="addItem()"
+        >
+          Adicionar
+        </button>
+      </div>
+      <p class="hint">
+        Só aparecem produtos ativos. Adicionar um produto que já está no pedido soma a quantidade.
+      </p>
+
+      @if (draft.isEmpty()) {
+        <p class="empty-box" [class.empty-box--error]="missingItems()">
+          {{
+            missingItems()
+              ? 'Adicione pelo menos um produto ao pedido.'
+              : 'Nenhum produto adicionado ainda.'
+          }}
+        </p>
+      } @else {
+        <table class="table table--compact">
+          <thead>
+            <tr>
+              <th scope="col">Produto</th>
+              <th scope="col" class="num">Preço</th>
+              <th scope="col" class="num">Qtd.</th>
+              <th scope="col" class="num">Total</th>
+              <th scope="col"><span class="sr-only">Remover</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of draft.items(); track item.product.id) {
+              <tr>
+                <td>{{ item.product.name }}</td>
+                <td class="num mono">{{ item.product.priceCents | money }}</td>
+                <td class="num">
+                  <div class="stepper">
+                    <button
+                      type="button"
+                      class="stepper__btn"
+                      [disabled]="item.quantity <= minQuantity"
+                      [attr.aria-label]="'Diminuir ' + item.product.name"
+                      (click)="draft.setQuantity(item.product.id, item.quantity - 1)"
+                    >
+                      −
+                    </button>
+                    <input
+                      #line
+                      class="stepper__input mono"
+                      type="number"
+                      [min]="minQuantity"
+                      [max]="maxQuantity"
+                      [value]="item.quantity"
+                      [attr.aria-label]="'Quantidade de ' + item.product.name"
+                      (change)="
+                        draft.setQuantity(item.product.id, line.valueAsNumber);
+                        line.value = '' + item.quantity
+                      "
+                    />
+                    <button
+                      type="button"
+                      class="stepper__btn"
+                      [disabled]="item.quantity >= maxQuantity"
+                      [attr.aria-label]="'Aumentar ' + item.product.name"
+                      (click)="draft.setQuantity(item.product.id, item.quantity + 1)"
+                    >
+                      +
+                    </button>
+                  </div>
+                </td>
+                <td class="num mono">{{ item.product.priceCents * item.quantity | money }}</td>
+                <td class="actions">
+                  <button
+                    type="button"
+                    class="btn btn--link btn--link-danger"
+                    (click)="draft.remove(item.product.id)"
+                  >
+                    Remover
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+  </div>
+
+  <aside class="receipt" aria-labelledby="receipt-title">
+    <h2 class="receipt__title" id="receipt-title">Comanda</h2>
+    <p class="receipt__customer">{{ customer()?.name ?? 'Cliente não selecionado' }}</p>
+
+    <ul class="receipt__lines">
+      @for (item of draft.items(); track item.product.id) {
+        <li>
+          <span>{{ item.quantity }}× {{ item.product.name }}</span>
+          <span class="mono">{{ item.product.priceCents * item.quantity | money }}</span>
+        </li>
+      } @empty {
+        <li class="receipt__empty">—</li>
+      }
+    </ul>
+
+    <div class="receipt__total">
+      <span>Total</span>
+      <strong class="mono">{{ draft.totalCents() | money }}</strong>
+    </div>
+    <p class="receipt__note">
+      {{ draft.itemCount() }} {{ draft.itemCount() === 1 ? 'item' : 'itens' }} · o valor final é
+      calculado pelo sistema
+    </p>
+
+    @if (apiError(); as message) {
+      <p class="form__error" role="alert">{{ message }}</p>
+    }
+
+    <button
+      type="button"
+      class="btn btn--primary btn--block"
+      [disabled]="submitting()"
+      (click)="submit()"
+    >
+      {{ submitting() ? 'Registrando…' : 'Finalizar pedido' }}
+    </button>
+  </aside>
+</div>

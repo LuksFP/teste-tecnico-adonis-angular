@@ -1,0 +1,96 @@
+<header class="page-header">
+  <div>
+    <p class="eyebrow">Cardápio</p>
+    <h1 class="page-title">Produtos</h1>
+  </div>
+  <button type="button" class="btn btn--primary" (click)="editing.set(null)">Novo produto</button>
+</header>
+
+@if (editing() !== undefined) {
+  <app-product-form
+    [product]="editing() ?? null"
+    (saved)="onSaved()"
+    (canceled)="editing.set(undefined)"
+  />
+}
+
+<div class="toolbar">
+  <label class="field field--grow">
+    <span class="sr-only">Buscar produto</span>
+    <input
+      #q
+      class="input"
+      type="search"
+      placeholder="Buscar pelo nome"
+      [value]="search()"
+      (input)="search.set(q.value)"
+    />
+  </label>
+  <div class="segmented" role="group" aria-label="Filtrar por situação">
+    @for (option of activeOptions; track option.value) {
+      <button
+        type="button"
+        class="segmented__option"
+        [class.is-selected]="activeFilter() === option.value"
+        [attr.aria-pressed]="activeFilter() === option.value"
+        (click)="activeFilter.set(option.value)"
+      >
+        {{ option.label }}
+      </button>
+    }
+  </div>
+</div>
+
+@if (products.error(); as error) {
+  <div class="state state--error">
+    <p>{{ error.message }}</p>
+    <button type="button" class="btn btn--ghost" (click)="products.reload()">Tentar de novo</button>
+  </div>
+} @else if (products.hasValue()) {
+  @let result = products.value();
+  <div class="table-wrap" [class.is-loading]="products.isLoading()">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Produto</th>
+          <th scope="col" class="num">Preço</th>
+          <th scope="col">Situação</th>
+          <th scope="col"><span class="sr-only">Ações</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (product of result.data; track product.id) {
+          <tr [class.is-muted]="!product.active">
+            <td>{{ product.name }}</td>
+            <td class="num mono">{{ product.priceCents | money }}</td>
+            <td>
+              <span class="pill" [class.pill--off]="!product.active">{{
+                product.active ? 'Ativo' : 'Inativo'
+              }}</span>
+            </td>
+            <td class="actions">
+              <button type="button" class="btn btn--link" (click)="editing.set(product)">
+                Editar
+              </button>
+              <button
+                type="button"
+                class="btn btn--link"
+                [disabled]="toggling() === product.id"
+                (click)="toggleActive(product)"
+              >
+                {{ product.active ? 'Desativar' : 'Ativar' }}
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="4" class="empty">Nenhum produto encontrado.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <app-pagination [meta]="result.metadata" (pageChange)="page.set($event)" />
+} @else {
+  <p class="state">Carregando produtos…</p>
+}

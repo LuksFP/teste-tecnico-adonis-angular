@@ -1,0 +1,48 @@
+<a class="skip-link" href="#main">Pular para o conteúdo</a>
+
+<div class="shell">
+  <aside class="sidebar">
+    <a class="brand" routerLink="/orders" aria-label="Comanda, página inicial">
+      comanda<span class="brand__dot">.</span>
+    </a>
+
+    <nav class="nav" aria-label="Principal">
+      <a
+        class="nav__link"
+        routerLink="/orders"
+        routerLinkActive="is-active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        ariaCurrentWhenActive="page"
+        >Pedidos</a
+      >
+      <a
+        class="nav__link"
+        routerLink="/products"
+        routerLinkActive="is-active"
+        ariaCurrentWhenActive="page"
+        >Produtos</a
+      >
+      <a
+        class="nav__link"
+        routerLink="/customers"
+        routerLinkActive="is-active"
+        ariaCurrentWhenActive="page"
+        >Clientes</a
+      >
+    </nav>
+
+    <a
+      class="nav__cta"
+      routerLink="/orders/new"
+      routerLinkActive="is-active"
+      ariaCurrentWhenActive="page"
+      >+ Novo pedido</a
+    >
+  </aside>
+
+  <main class="content" id="main">
+    <router-outlet />
+  </main>
+</div>
+
+<app-toast-outlet />

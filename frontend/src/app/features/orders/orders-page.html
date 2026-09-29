@@ -1,0 +1,102 @@
+<header class="page-header">
+  <div>
+    <p class="eyebrow">Balcão</p>
+    <h1 class="page-title">Pedidos</h1>
+  </div>
+  <a class="btn btn--primary" routerLink="/orders/new">Novo pedido</a>
+</header>
+
+<div class="toolbar">
+  <label class="field field--grow">
+    <span class="sr-only">Buscar pedido</span>
+    <input
+      #q
+      class="input"
+      type="search"
+      placeholder="Nº do pedido ou nome do cliente"
+      [value]="search()"
+      (input)="search.set(q.value)"
+    />
+  </label>
+</div>
+
+<div class="chips" role="group" aria-label="Filtrar por status">
+  <button
+    type="button"
+    class="chip"
+    [class.is-selected]="status() === ''"
+    [attr.aria-pressed]="status() === ''"
+    (click)="status.set('')"
+  >
+    Todos <span class="chip__count mono">{{ counts.value()?.all ?? '–' }}</span>
+  </button>
+  @for (option of statuses; track option) {
+    <button
+      type="button"
+      class="chip chip--{{ option }}"
+      [class.is-selected]="status() === option"
+      [attr.aria-pressed]="status() === option"
+      (click)="toggleStatus(option)"
+    >
+      {{ statusLabel[option] }}
+      <span class="chip__count mono">{{ counts.value()?.byStatus?.get(option) ?? '–' }}</span>
+    </button>
+  }
+</div>
+
+@if (orders.error(); as error) {
+  <div class="state state--error">
+    <p>{{ error.message }}</p>
+    <button type="button" class="btn btn--ghost" (click)="orders.reload()">Tentar de novo</button>
+  </div>
+} @else if (orders.hasValue()) {
+  @let result = orders.value();
+  <div class="table-wrap" [class.is-loading]="orders.isLoading()">
+    <table class="table table--clickable">
+      <thead>
+        <tr>
+          <th scope="col">Nº</th>
+          <th scope="col">Cliente</th>
+          <th scope="col">Data</th>
+          <th scope="col" class="num">Valor</th>
+          <th scope="col">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (order of result.data; track order.id) {
+          <tr (click)="open(order.id)">
+            <td class="mono">
+              <a
+                class="order-number"
+                [routerLink]="['/orders', order.id]"
+                (click)="$event.stopPropagation()"
+                >#{{ order.id }}</a
+              >
+            </td>
+            <td>
+              @if (order.customer; as customer) {
+                <span class="who"><app-avatar [name]="customer.name" />{{ customer.name }}</span>
+              }
+            </td>
+            <td>{{ order.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td class="num mono">{{ order.totalCents | money }}</td>
+            <td><app-status-badge [status]="order.status" /></td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="empty">
+              @if (search() || status()) {
+                Nenhum pedido com esses filtros.
+              } @else {
+                Nenhum pedido ainda.
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <app-pagination [meta]="result.metadata" (pageChange)="page.set($event)" />
+} @else {
+  <p class="state">Carregando pedidos…</p>
+}
