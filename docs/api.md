@@ -179,7 +179,7 @@ Exemplo de troca recusada:
 {
   "error": {
     "code": "INVALID_STATUS_TRANSITION",
-    "message": "Não é possível mudar o pedido de \"preparing\" para \"pending\".",
+    "message": "Um pedido em preparação não pode ir para pendente.",
     "details": { "from": "preparing", "to": "pending", "allowed": ["ready", "canceled"] }
   }
 }

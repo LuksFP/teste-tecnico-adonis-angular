@@ -38,7 +38,7 @@ export class ApiError extends Error {
       return new ApiError(
         0,
         'NETWORK_ERROR',
-        'Não foi possível falar com a API. Ela está rodando?',
+        'O servidor não respondeu. Tente de novo em instantes.',
       );
     }
 
@@ -46,7 +46,9 @@ export class ApiError extends Error {
     const error = isRecord(body) && isRecord(body['error']) ? body['error'] : null;
     const code = typeof error?.['code'] === 'string' ? error['code'] : 'UNKNOWN_ERROR';
     const message =
-      typeof error?.['message'] === 'string' ? error['message'] : 'Algo deu errado. Tente de novo.';
+      typeof error?.['message'] === 'string'
+        ? error['message']
+        : 'Não foi possível concluir. Tente de novo.';
 
     return new ApiError(response.status, code, message, toFieldErrors(error?.['details']));
   }
@@ -61,5 +63,5 @@ export class ApiError extends Error {
 }
 
 export function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : 'Algo deu errado. Tente de novo.';
+  return error instanceof Error ? error.message : 'Não foi possível concluir. Tente de novo.';
 }

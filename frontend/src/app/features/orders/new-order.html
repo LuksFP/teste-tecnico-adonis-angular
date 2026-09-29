@@ -58,7 +58,7 @@
             <option value="">Escolha um produto…</option>
             @for (product of products.value()?.data ?? []; track product.id) {
               <option [value]="product.id">
-                {{ product.name }} — {{ product.priceCents | money }}
+                {{ product.name }} ({{ product.priceCents | money }})
               </option>
             }
           </select>
@@ -87,7 +87,7 @@
         </button>
       </div>
       <p class="hint">
-        Só aparecem produtos ativos. Adicionar um produto que já está no pedido soma a quantidade.
+        Só aparecem produtos ativos. Se o produto já estiver no pedido, a quantidade é somada.
       </p>
 
       @if (draft.isEmpty()) {
@@ -187,8 +187,8 @@
       <strong class="mono">{{ draft.totalCents() | money }}</strong>
     </div>
     <p class="receipt__note">
-      {{ draft.itemCount() }} {{ draft.itemCount() === 1 ? 'item' : 'itens' }} · o valor final é
-      calculado pelo sistema
+      {{ draft.itemCount() }} {{ draft.itemCount() === 1 ? 'item' : 'itens' }} · o total é
+      confirmado ao finalizar
     </p>
 
     @if (apiError(); as message) {

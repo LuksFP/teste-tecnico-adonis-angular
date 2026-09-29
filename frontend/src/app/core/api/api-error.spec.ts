@@ -44,6 +44,6 @@ describe('ApiError', () => {
     const error = ApiError.from(new HttpErrorResponse({ status: 500, error: '<html>' }));
 
     expect(error.code).toBe('UNKNOWN_ERROR');
-    expect(error.message).toContain('Algo deu errado');
+    expect(error.message).toContain('Não foi possível concluir');
   });
 });

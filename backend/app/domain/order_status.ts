@@ -10,6 +10,17 @@ export const ORDER_STATUSES = ['pending', 'preparing', 'ready', 'completed', 'ca
 
 export type OrderStatus = (typeof ORDER_STATUSES)[number]
 
+/**
+ * How each status is written in messages shown to people.
+ */
+export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
+  pending: 'Pendente',
+  preparing: 'Em preparação',
+  ready: 'Pronto',
+  completed: 'Finalizado',
+  canceled: 'Cancelado',
+}
+
 const TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
   pending: ['preparing', 'canceled'],
   preparing: ['ready', 'canceled'],
