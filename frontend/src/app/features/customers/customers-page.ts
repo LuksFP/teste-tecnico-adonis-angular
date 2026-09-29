@@ -5,12 +5,13 @@ import { Customer } from '../../core/models/customer';
 import { CustomersService } from '../../core/services/customers.service';
 import { Avatar } from '../../shared/ui/avatar';
 import { Pagination } from '../../shared/ui/pagination';
+import { TableSkeleton } from '../../shared/ui/table-skeleton';
 import { debounced } from '../../shared/utils/debounced';
 import { CustomerForm } from './customer-form';
 
 @Component({
   selector: 'app-customers-page',
-  imports: [Avatar, DatePipe, Pagination, CustomerForm],
+  imports: [Avatar, DatePipe, Pagination, CustomerForm, TableSkeleton],
   template: `
     <header class="page-header">
       <div>
@@ -79,7 +80,19 @@ import { CustomerForm } from './customer-form';
               </tr>
             } @empty {
               <tr>
-                <td colspan="4" class="empty">Nenhum cliente encontrado.</td>
+                <td colspan="4" class="empty">
+                  @if (search()) {
+                    <p>Nenhum cliente com esse nome ou telefone.</p>
+                    <button type="button" class="btn btn--ghost" (click)="search.set('')">
+                      Limpar busca
+                    </button>
+                  } @else {
+                    <p>Nenhum cliente cadastrado ainda.</p>
+                    <button type="button" class="btn btn--primary" (click)="editing.set(null)">
+                      Cadastrar o primeiro cliente
+                    </button>
+                  }
+                </td>
               </tr>
             }
           </tbody>
@@ -87,7 +100,7 @@ import { CustomerForm } from './customer-form';
       </div>
       <app-pagination [meta]="result.metadata" (pageChange)="page.set($event)" />
     } @else {
-      <p class="state">Carregando clientes…</p>
+      <app-table-skeleton label="Carregando clientes" />
     }
   `,
 })

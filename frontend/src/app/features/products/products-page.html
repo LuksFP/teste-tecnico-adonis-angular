@@ -84,7 +84,19 @@
           </tr>
         } @empty {
           <tr>
-            <td colspan="4" class="empty">Nenhum produto encontrado.</td>
+            <td colspan="4" class="empty">
+              @if (search() || activeFilter() !== 'all') {
+                <p>Nenhum produto com esse filtro.</p>
+                <button type="button" class="btn btn--ghost" (click)="clearFilters()">
+                  Limpar filtros
+                </button>
+              } @else {
+                <p>O cardápio está vazio.</p>
+                <button type="button" class="btn btn--primary" (click)="editing.set(null)">
+                  Cadastrar o primeiro produto
+                </button>
+              }
+            </td>
           </tr>
         }
       </tbody>
@@ -92,5 +104,5 @@
   </div>
   <app-pagination [meta]="result.metadata" (pageChange)="page.set($event)" />
 } @else {
-  <p class="state">Carregando produtos…</p>
+  <app-table-skeleton label="Carregando produtos" />
 }

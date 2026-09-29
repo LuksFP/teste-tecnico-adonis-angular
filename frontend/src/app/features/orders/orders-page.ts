@@ -14,11 +14,12 @@ import { MoneyPipe } from '../../shared/pipes/money.pipe';
 import { Pagination } from '../../shared/ui/pagination';
 import { Avatar } from '../../shared/ui/avatar';
 import { StatusBadge } from '../../shared/ui/status-badge';
+import { TableSkeleton } from '../../shared/ui/table-skeleton';
 import { debounced } from '../../shared/utils/debounced';
 
 @Component({
   selector: 'app-orders-page',
-  imports: [Avatar, DatePipe, MoneyPipe, Pagination, RouterLink, StatusBadge],
+  imports: [Avatar, DatePipe, MoneyPipe, Pagination, RouterLink, StatusBadge, TableSkeleton],
   templateUrl: './orders-page.html',
 })
 export class OrdersPage {
@@ -66,6 +67,11 @@ export class OrdersPage {
         }),
       ),
   });
+
+  protected clearFilters(): void {
+    this.search.set('');
+    this.status.set('');
+  }
 
   protected toggleStatus(status: OrderStatus | ''): void {
     this.status.set(this.status() === status ? '' : status);

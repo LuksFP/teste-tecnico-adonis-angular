@@ -6,6 +6,7 @@ import { Product } from '../../core/models/product';
 import { ProductsService } from '../../core/services/products.service';
 import { MoneyPipe } from '../../shared/pipes/money.pipe';
 import { Pagination } from '../../shared/ui/pagination';
+import { TableSkeleton } from '../../shared/ui/table-skeleton';
 import { debounced } from '../../shared/utils/debounced';
 import { ProductForm } from './product-form';
 
@@ -13,7 +14,7 @@ type ActiveFilter = 'all' | 'active' | 'inactive';
 
 @Component({
   selector: 'app-products-page',
-  imports: [MoneyPipe, Pagination, ProductForm],
+  imports: [MoneyPipe, Pagination, ProductForm, TableSkeleton],
   templateUrl: './products-page.html',
 })
 export class ProductsPage {
@@ -48,6 +49,11 @@ export class ProductsPage {
     }),
     stream: ({ params }) => this.productsService.list(params),
   });
+
+  protected clearFilters(): void {
+    this.search.set('');
+    this.activeFilter.set('all');
+  }
 
   protected onSaved(): void {
     this.editing.set(undefined);

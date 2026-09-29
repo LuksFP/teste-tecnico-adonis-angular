@@ -86,9 +86,13 @@
           <tr>
             <td colspan="5" class="empty">
               @if (search() || status()) {
-                Nenhum pedido com esses filtros.
+                <p>Nenhum pedido com esses filtros.</p>
+                <button type="button" class="btn btn--ghost" (click)="clearFilters()">
+                  Limpar filtros
+                </button>
               } @else {
-                Nenhum pedido ainda.
+                <p>Nenhum pedido registrado ainda.</p>
+                <a class="btn btn--primary" routerLink="/orders/new">Registrar o primeiro pedido</a>
               }
             </td>
           </tr>
@@ -98,5 +102,5 @@
   </div>
   <app-pagination [meta]="result.metadata" (pageChange)="page.set($event)" />
 } @else {
-  <p class="state">Carregando pedidos…</p>
+  <app-table-skeleton label="Carregando pedidos" />
 }

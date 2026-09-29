@@ -57,13 +57,17 @@ No produto, o preço é digitado em reais e vai em centavos (`Math.round(preco *
 
 ## Estados de tela
 
-Toda lista tem quatro estados: carregando, erro com "Tentar de novo", vazia e com dados. A lista vazia distingue "não tem nada cadastrado" de "nada bate com o filtro". Numa recarga a tabela fica semitransparente em vez de sumir, para a tela não pular.
+Toda lista tem quatro estados. Enquanto carrega, aparece um esqueleto com o formato da tabela, para a página não pular quando os dados chegam. Com erro, a mensagem vem com "Tentar de novo". Vazia, a tela separa "não tem nada cadastrado", que oferece cadastrar o primeiro, de "nada bate com o filtro", que oferece limpar os filtros. Numa recarga a tabela fica semitransparente em vez de sumir.
 
 ## Visual
 
 O PDF não avalia design, mas também não havia motivo para usar template pronto. O tema é comanda de balcão: fundo cor de papel com textura, texto em tinta escura e vermelho de carimbo como cor de destaque. Os títulos usam Bricolage Grotesque, o texto usa IBM Plex Sans, e todo número (preço, número do pedido) usa IBM Plex Mono, como numa comanda impressa. A comanda do novo pedido sobe por cima da linha do título, levemente torta e com a borda serrilhada, e a barra lateral tem borda picotada.
 
-Está tudo em `src/styles.css`, com as cores em variáveis no topo.
+Os movimentos seguem o mesmo tema. As linhas das tabelas aparecem da esquerda para a direita, uma depois da outra, como o cabeçote de uma impressora de comanda, e só quando a linha é nova. O aviso de sucesso cai como um tíquete destacado, e o carimbo de pedido finalizado bate com um pequeno repique. Cada elemento tem seu hover: a linha clicável ganha a marca vermelha de item conferido, link sublinhado engrossa o traço, botão de contorno escurece a borda.
+
+Os cantos também variam por tipo: folha de papel (painel, tabela) é reta, campo e botão são quase retos, o aviso tem canto de tíquete e os filtros de status são pílulas.
+
+Está tudo em `src/styles.css`, com cores e cantos em variáveis no topo.
 
 ## Acessibilidade
 
