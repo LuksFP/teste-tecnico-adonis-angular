@@ -4,7 +4,7 @@ Base: `http://localhost:3333/api/v1`. Todas as requisições e respostas são JS
 
 ## Convenções
 
-**Sucesso** vem dentro de `data`. Listas paginadas trazem também `metadata`:
+Toda resposta de sucesso vem dentro de `data`, e as listas paginadas trazem também `metadata`:
 
 ```json
 {
@@ -17,15 +17,13 @@ Base: `http://localhost:3333/api/v1`. Todas as requisições e respostas são JS
 }
 ```
 
-**Erro** vem sempre neste formato, qualquer que seja a causa:
+Erro tem sempre o mesmo formato, qualquer que seja a causa:
 
 ```json
 { "error": { "code": "VALIDATION_ERROR", "message": "Os dados enviados são inválidos.", "details": [ ... ] } }
 ```
 
-**Dinheiro** é sempre inteiro em centavos: `2500` = R$ 25,00.
-
-**Paginação** em toda listagem: `page` (padrão 1) e `perPage` (padrão 10, máximo 100).
+Dinheiro é sempre inteiro em centavos (`2500` é R$ 25,00). Toda listagem aceita `page`, que começa em 1, e `perPage`, que vale 10 se não for informado e vai no máximo até 100.
 
 ## Códigos de erro
 
@@ -158,8 +156,7 @@ Resposta `201`:
 }
 ```
 
-- `unitPriceCents` é o preço no momento da compra. `product.priceCents` é o preço de hoje. Podem ser diferentes, e é esse o objetivo.
-- `nextStatuses` diz para quais status o pedido pode ir agora. O front usa isso para decidir os botões.
+`unitPriceCents` é o preço no momento da compra e `product.priceCents` é o preço de hoje. Os dois podem ser diferentes, e a regra 6 existe justamente para isso. `nextStatuses` lista os status para onde o pedido pode ir agora, e é com ele que o front decide quais botões mostrar.
 
 Erros possíveis: `422 VALIDATION_ERROR`, `422 PRODUCT_NOT_FOUND`, `422 PRODUCT_INACTIVE`.
 
@@ -192,8 +189,6 @@ Erros possíveis: `404 NOT_FOUND`, `409 INVALID_STATUS_TRANSITION`, `409 ORDER_S
 
 ---
 
-## O que não existe (de propósito)
+## O que não existe
 
-- **Não há `DELETE`** para clientes e produtos. Os dois podem estar em pedidos, e o banco impede apagar (`RESTRICT`). Produto sai de circulação sendo desativado.
-- **Não há edição de itens** de um pedido já criado. O PDF não pede, e mexer em pedido fechado muda o valor que o cliente já viu.
-- **Não há autenticação.** O PDF não pede.
+Não há `DELETE` para clientes nem produtos. Os dois podem estar em pedidos, o banco impede a exclusão (`RESTRICT`), e produto sai de circulação sendo desativado. Também não dá para editar os itens de um pedido já criado: o PDF não pede, e isso mudaria um valor que o cliente já viu. Autenticação não existe porque o PDF não pede.

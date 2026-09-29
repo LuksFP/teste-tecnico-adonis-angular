@@ -70,6 +70,6 @@ Detalhes em [frontend.md](frontend.md).
 
 ## Como as duas partes se encontram
 
-- Em desenvolvimento o Angular roda em `:4200` e o `proxy.conf.json` repassa `/api` para `:3333`. O navegador acha que é tudo o mesmo servidor, então não há CORS no dia a dia.
-- Fora do modo dev, a API só aceita as origens listadas em `CORS_ORIGIN`.
-- O contrato é o JSON: `priceCents` e afins são inteiros em centavos dos dois lados, datas são ISO 8601 com fuso.
+Em desenvolvimento o Angular roda na porta 4200 e o `proxy.conf.json` repassa `/api` para a 3333. Para o navegador é tudo o mesmo servidor, então CORS não aparece no dia a dia. Fora do modo dev, a API só aceita as origens listadas em `CORS_ORIGIN`.
+
+O contrato entre os dois é o JSON: todo valor com `Cents` no nome é inteiro em centavos dos dois lados, e datas vão em ISO 8601 com fuso.

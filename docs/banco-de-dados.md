@@ -43,15 +43,13 @@ erDiagram
   }
 ```
 
-## Decisões de modelagem
+## Por que está modelado assim
 
-**Dinheiro em centavos, inteiro.** `0.1 + 0.2` dá `0.30000000000000004` em ponto flutuante. Guardando `2500` em vez de `25.00`, toda soma e multiplicação é exata. A conversão para R$ acontece só na tela.
+Todo valor em dinheiro é inteiro em centavos: `2500`, não `25.00`. Em ponto flutuante `0.1 + 0.2` dá `0.30000000000000004`, e com inteiro toda soma e multiplicação sai exata. A conversão para R$ só acontece na tela.
 
-**`unit_price_cents` no item.** É a regra 6 do PDF. O item guarda uma cópia do preço no momento da compra. O preço atual continua no produto; o pedido não depende dele.
+`order_items.unit_price_cents` é a regra 6 do PDF. O item guarda o preço do momento da compra, e o preço de hoje continua no produto, sem que o pedido dependa dele. Os `total_cents` do item e do pedido também são gravados, uma vez só, na criação, pelo `OrderService`. Daria para calcular na leitura, mas o pedido é o registro do que foi cobrado e não deve mudar se a conta mudar.
 
-**`total_cents` no item e no pedido.** Poderia ser calculado na hora da leitura, mas guardar deixa o pedido como um registro fechado do que foi cobrado e evita recalcular a cada listagem. Os dois são escritos uma única vez, na criação, pelo `OrderService`.
-
-**Chaves estrangeiras:**
+As chaves estrangeiras seguem o que cada relação significa:
 
 | Relação | Ao apagar o pai | Por quê |
 |---|---|---|
@@ -59,13 +57,13 @@ erDiagram
 | `order_items.order_id → orders` | `CASCADE` | Item não existe sem o pedido |
 | `order_items.product_id → products` | `RESTRICT` | O histórico precisa saber o que foi vendido. Produto sai de circulação sendo desativado, não apagado |
 
-O SQLite vem com chaves estrangeiras desligadas. `config/database.ts` liga com `PRAGMA foreign_keys = ON` em cada conexão, para o banco garantir as relações e não só o código.
+O SQLite vem com chave estrangeira desligada, e `config/database.ts` liga com `PRAGMA foreign_keys = ON` em cada conexão. Sem isso, as relações só existiriam no código.
 
-**`unique(order_id, product_id)`.** Um produto aparece uma vez por pedido; para levar mais, aumenta a quantidade. A API já recusa repetição na validação, e o índice garante no banco.
+`unique(order_id, product_id)` impede o mesmo produto duas vezes no pedido: para levar mais, aumenta a quantidade. A API já recusa isso na validação, e o índice garante no banco.
 
-**Índices.** Nas colunas usadas em filtro, busca e ordenação: `orders.status`, `orders.customer_id`, `orders.created_at`, `products.active`, `products.name`, `customers.name`, e as chaves estrangeiras de `order_items`.
+Os índices estão nas colunas usadas para filtrar, buscar e ordenar: `orders.status`, `orders.customer_id`, `orders.created_at`, `products.active`, `products.name`, `customers.name` e as chaves estrangeiras de `order_items`.
 
-**`status` como texto** (`pending`, `preparing`, ...), não número. Fica legível numa consulta direta ao banco, e o conjunto de valores válidos é controlado pelo código em `app/domain/order_status.ts`.
+`status` é texto (`pending`, `preparing`...), não número, para ficar legível numa consulta direta. Quem decide os valores válidos é o código, em `app/domain/order_status.ts`.
 
 ## Models
 
@@ -74,7 +72,7 @@ Os models em `app/models/` declaram cada coluna (`@column`) em vez de usar o sch
 | Model | Relações | Detalhe |
 |---|---|---|
 | `Customer` | `hasMany(Order)` | Scope `search`: nome ou telefone |
-| `Product` | — | `active` convertido para booleano (SQLite devolve 0/1). Scope `search`: nome |
+| `Product` | nenhuma | `active` convertido para booleano (SQLite devolve 0/1). Scope `search`: nome |
 | `Order` | `belongsTo(Customer)`, `hasMany(OrderItem)` | `status` tipado como `OrderStatus`. Scope `search`: número do pedido ou nome do cliente |
 | `OrderItem` | `belongsTo(Order)`, `belongsTo(Product)` | Sem timestamps; o item nasce e morre com o pedido |
 

@@ -35,11 +35,11 @@ sequenceDiagram
   S-->>F: 201 pedido com itens
 ```
 
-Três pontos:
+O front não manda preço, só `productId` e `quantity`. Se mandasse, qualquer pessoa editando a requisição no navegador pagaria o que quisesse.
 
-- **O cliente não manda preço.** A requisição tem só `productId` e `quantity`. Se o front mandasse preço, qualquer pessoa editando a requisição no navegador pagaria o que quisesse.
-- **Tudo numa transação.** Pedido e itens entram juntos ou nada entra. O teste `refuses inactive products and saves nothing` confere que, com um produto inativo no meio, nenhuma linha é criada em `orders` nem em `order_items`.
-- **O preço é copiado.** `unit_price_cents = product.price_cents` no momento da gravação. O exemplo do PDF (X-Burger de R$ 25 para R$ 30) está no teste.
+Pedido e itens entram juntos ou nada entra. O teste `refuses inactive products and saves nothing` põe um produto inativo no meio e confere que nenhuma linha foi criada, nem em `orders` nem em `order_items`.
+
+O preço de cada item é copiado do produto na hora da gravação (`unit_price_cents = product.price_cents`). O exemplo do PDF, o X-Burger que passa de R$ 25 para R$ 30, está num teste.
 
 ## Fluxo de status
 
@@ -64,16 +64,11 @@ stateDiagram-v2
 | `completed` | Finalizado | nenhum |
 | `canceled` | Cancelado | nenhum |
 
-A tabela está em `app/domain/order_status.ts` como um objeto (`TRANSITIONS`). Mudar o fluxo é mudar essa tabela, e o resto do sistema (validação, `nextStatuses`, botões do front) acompanha.
+A tabela está em `app/domain/order_status.ts`, no objeto `TRANSITIONS`. Para mudar o fluxo, muda essa tabela e mais nada: a validação, o `nextStatuses` e os botões do front seguem ela.
 
-**Duas interpretações do PDF:**
-
-1. **Não se pula etapa nem se volta.** As setas do PDF descrevem uma sequência. Pendente não vai direto para Pronto.
-2. **Finalizado também é final.** O PDF diz que cancelado não volta, mas não fala de cancelar pedido finalizado. Pedido entregue não se cancela; seria estorno, outro processo. Se a leitura esperada for outra, basta incluir `'canceled'` em `completed: []`.
+O PDF deixa duas coisas em aberto. As setas descrevem uma sequência, então pendente não vai direto para pronto e nada volta. E ele diz que cancelado não volta, mas não fala de cancelar pedido finalizado. Aqui finalizado também é final, porque pedido entregue não se cancela, se estorna. Se a leitura esperada for a outra, basta incluir `'canceled'` em `completed: []`.
 
 ## Dois atendentes no mesmo pedido
-
-Há dois problemas diferentes aqui, e cada um tem sua proteção.
 
 ### 1. Tela desatualizada
 
@@ -83,7 +78,7 @@ Há dois problemas diferentes aqui, e cada um tem sua proteção.
 
 Para a API, cancelar um pedido em preparação é permitido. Sem proteção, o pedido seria cancelado com a cozinha já trabalhando, e B nem saberia que ele tinha saído de "Pendente".
 
-**Proteção:** o front manda junto o status que está na tela: `{ "status": "canceled", "from": "pending" }`. Se o pedido não está mais em `from`, a API responde `409 ORDER_STATUS_CHANGED` e não muda nada. O front mostra o aviso e recarrega o pedido, e B decide de novo vendo o status real.
+Por isso o front manda junto o status que está na tela: `{ "status": "canceled", "from": "pending" }`. Se o pedido não está mais em `from`, a API responde `409 ORDER_STATUS_CHANGED` e não muda nada. O front mostra o aviso e recarrega o pedido, e B decide de novo vendo o status real.
 
 `from` é opcional na API, para não quebrar quem só manda `status`. O front sempre manda.
 
@@ -91,9 +86,7 @@ Teste: `refuses a change made from an outdated screen`.
 
 ### 2. Duas requisições ao mesmo tempo
 
-Mesmo com `from`, a API faz duas coisas separadas: lê o pedido, confere a regra e depois grava. Se duas requisições chegam juntas, as duas podem ler "pendente" antes de qualquer uma gravar, as duas passam na checagem e a segunda sobrescreve a primeira.
-
-**Proteção:** a gravação é condicionada ao status que foi lido (`OrderService.transition`):
+Mesmo com `from`, a API faz duas coisas separadas: lê o pedido, confere a regra e só depois grava. Se duas requisições chegam juntas, as duas podem ler "pendente" antes de qualquer uma gravar, as duas passam na checagem e a segunda sobrescreve a primeira. Então a gravação em `OrderService.transition` só vale se o pedido ainda estiver no status que foi lido:
 
 ```sql
 UPDATE orders SET status = 'canceled', updated_at = ...
@@ -104,7 +97,7 @@ Se nenhuma linha foi alterada, outra requisição chegou antes, e a resposta é 
 
 Teste: `a stale status change does not overwrite a newer one`.
 
-Os dois testes falham se a proteção correspondente for removida do código; isso foi conferido.
+Os dois testes falham quando a proteção correspondente é tirada do código. Isso foi conferido tirando.
 
 ## Validações além das regras
 

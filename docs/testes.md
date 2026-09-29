@@ -9,11 +9,9 @@ O GitHub Actions (`.github/workflows/ci.yml`) roda tudo a cada push: lint, typec
 
 ## Como os testes da API funcionam
 
-- Banco separado: `tmp/db.test.sqlite3`, definido em `backend/.env.test`. As migrations rodam uma vez no início.
-- Cada teste roda dentro de uma transação que é desfeita no final (`withGlobalTransaction`). Um teste não enxerga os dados de outro, e a ordem não importa.
-- Os testes funcionais sobem a API de verdade e fazem requisições HTTP. Nos caminhos felizes as chamadas usam o nome da rota (`client.visit('orders.store')`), que é tipado a partir dos validators e transformers: se o formato da resposta mudar, o teste não compila.
-- Nos testes de entrada inválida as chamadas usam a URL crua, porque o tipo não deixaria montar a requisição errada.
-- `tests/helpers.ts` tem `createCustomer` e `createProduct`, para cada teste escrever só os campos que importam para ele.
+Os testes usam um banco separado, `tmp/db.test.sqlite3`, definido em `backend/.env.test`, e as migrations rodam uma vez no começo. Cada teste roda dentro de uma transação desfeita no final (`withGlobalTransaction`), então nenhum enxerga os dados de outro e a ordem não importa.
+
+Os testes funcionais sobem a API de verdade e fazem requisições HTTP. Nos casos que devem dar certo, a chamada usa o nome da rota (`client.visit('orders.store')`), que o AdonisJS tipa a partir dos validators e transformers: se o formato da resposta mudar, o teste para de compilar. Nos casos de entrada inválida a chamada usa a URL crua, porque o tipo não deixaria montar a requisição errada. `tests/helpers.ts` tem `createCustomer` e `createProduct`, para cada teste só escrever os campos que importam para ele.
 
 ## O que cada arquivo cobre
 
@@ -23,9 +21,11 @@ A tabela de transições, sem banco: segue o fluxo, não pula nem volta, cancela
 
 ### `backend/tests/functional/orders.spec.ts` (21)
 
-- **Criação:** total calculado no backend mesmo com total falso na requisição; preço congelado depois de mudar o produto; cliente obrigatório e existente; pelo menos um produto; quantidade de 1 a 999 e inteira; produto repetido recusado; produto inativo recusado sem gravar nada; produto reativado volta a ser aceito; desativar produto não mexe em pedido antigo; produto inexistente.
-- **Status:** fluxo completo; não pula etapa; cancelado não sai; finalizado não cancela; `nextStatuses` correto; status desconhecido; tela desatualizada (`from`) recusada; requisição atrasada não sobrescreve a mais nova.
-- **Listagem:** mais novo primeiro; paginação; filtro por status e por cliente; busca por nome e por número.
+Na criação: total calculado no backend mesmo com total falso na requisição; preço congelado depois de mudar o produto; cliente obrigatório e existente; pelo menos um produto; quantidade de 1 a 999 e inteira; produto repetido recusado; produto inativo recusado sem gravar nada; produto reativado volta a ser aceito; desativar produto não mexe em pedido antigo; produto inexistente.
+
+No status: fluxo completo; não pula etapa; cancelado não sai; finalizado não cancela; `nextStatuses` correto; status desconhecido; tela desatualizada (`from`) recusada; requisição atrasada não sobrescreve a mais nova.
+
+Na listagem: mais novo primeiro; paginação; filtro por status e por cliente; busca por nome e por número.
 
 ### `backend/tests/functional/customers.spec.ts` (7)
 
@@ -41,10 +41,7 @@ JSON malformado dá 400; rota inexistente e id não numérico dão 404; 404 para
 
 ## Como os testes do front funcionam
 
-- Vitest pelo builder do Angular (`ng test`).
-- Os testes de tela renderizam o componente de verdade e interagem pelo HTML: escolhem opção no `select`, digitam, clicam em botão pelo texto. Não mexem em propriedades internas.
-- A API é simulada com `HttpTestingController`: o teste confere o que o componente mandou (método, URL, corpo) e responde o que quiser, inclusive erros.
-- `src/testing/fixtures.ts` tem dados no formato das respostas da API e os helpers `choose` e `buttonByText`.
+Rodam no Vitest, pelo builder do Angular (`ng test`). Os testes de tela renderizam o componente de verdade e mexem nele pelo HTML: escolhem opção no `select`, digitam, clicam no botão pelo texto. Não tocam em propriedade interna. A API é simulada com `HttpTestingController`, então o teste confere o que o componente mandou (método, URL, corpo) e responde o que quiser, inclusive erro. `src/testing/fixtures.ts` guarda dados no formato das respostas da API e os helpers `choose` e `buttonByText`.
 
 ## O que cada arquivo do front cobre
 
@@ -61,9 +58,9 @@ JSON malformado dá 400; rota inexistente e id não numérico dão 404; 404 para
 | `shared/pipes/money.pipe.spec.ts` | 2 | Formatação em reais, valor ausente |
 | `core/api/query-params.spec.ts` | 1 | Filtros vazios ficam fora da URL |
 
-## Os testes testam de verdade?
+## Sabotagem
 
-Um teste que passa com o código quebrado não serve. Por isso, para as proteções mais importantes, o código foi quebrado de propósito e o teste precisou falhar:
+Teste que passa com o código quebrado não vale nada. Nas proteções mais importantes, o código foi quebrado de propósito e o teste teve que falhar:
 
 | Sabotagem | Resultado |
 |---|---|

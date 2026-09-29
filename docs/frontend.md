@@ -18,43 +18,29 @@ Todas carregam sob demanda (`loadComponent`), cada tela vira um arquivo JS separ
 
 ### Pedidos (`features/orders/orders-page`)
 
-Tabela com número, cliente, data, valor e status, que é o mínimo que o PDF pede.
-
-- Busca por número ou nome do cliente, esperando 300 ms depois da última tecla antes de chamar a API.
-- Filtro por status em botões com a contagem de cada um. A contagem usa o `total` de uma página de 1 item por status, sem endpoint extra.
-- Trocar filtro volta para a página 1 (`linkedSignal`), senão daria para cair numa página que não existe mais.
-- Clicar na linha abre o pedido.
+A tabela mostra número, cliente, data, valor e status, o mínimo que o PDF pede, e clicar na linha abre o pedido. A busca aceita número ou nome do cliente e só chama a API 300 ms depois da última tecla. O filtro de status virou uma fileira de botões com a contagem de cada status, que sai do `total` de uma página de um item só por status, sem endpoint novo. Trocar de filtro volta para a página 1 (`linkedSignal`); sem isso daria para ficar parado na página 3 de um filtro que só tem uma.
 
 ### Novo pedido (`features/orders/new-order`)
 
-Cobre cada item do PDF: selecionar cliente, adicionar produtos, informar quantidade, remover, ver os valores e finalizar.
+Cobre cada item que o PDF lista: selecionar cliente, adicionar produtos, informar quantidade, remover, ver os valores e finalizar.
 
-- Só aparecem produtos ativos (`GET /products?active=true`).
-- Adicionar um produto que já está no pedido soma a quantidade, em vez de criar outra linha.
-- A quantidade tem botões − e + e aceita digitação; valores fora de 1 a 999 são ajustados.
-- À direita, a "comanda" mostra o total em tempo real. Ele é uma prévia: o valor que vale é o que a API calcula.
-- Sem cliente ou sem produto, o botão mostra o que falta e não chama a API.
-- Se a API recusar (por exemplo, um produto foi desativado por outra pessoa enquanto o pedido era montado), a mensagem aparece acima do botão e a lista de produtos é recarregada.
-- Criado o pedido, abre o detalhe dele com um aviso de sucesso.
+Só aparecem produtos ativos (`GET /products?active=true`). Adicionar um produto que já está no pedido soma a quantidade, que é o que quem está no balcão espera, em vez de criar uma segunda linha. A quantidade tem − e + e aceita digitação, e qualquer valor fora de 1 a 999 é ajustado. À direita fica a comanda com o total em tempo real, mas esse total é prévia: o valor que vale é o que a API calcula.
 
-O estado do pedido em montagem fica em `order-draft.ts`, uma classe com signals separada do componente, que é testada sozinha.
+Sem cliente ou sem produto, o botão aponta o que falta e não chama a API. Se a API recusar, por exemplo porque alguém desativou um produto enquanto o pedido era montado, a mensagem aparece acima do botão e a lista de produtos recarrega. Com o pedido criado, a tela abre o detalhe dele.
+
+O estado do pedido em montagem mora em `order-draft.ts`, uma classe com signals fora do componente, e por isso tem teste próprio.
 
 ### Detalhe do pedido (`features/orders/order-detail`)
 
-- Linha do tempo com as 4 etapas, destacando a atual.
-- Itens com o preço pago (`unitPriceCents`), não o preço de hoje.
-- Botões de status gerados a partir de `nextStatuses` da API. O front não repete a regra do fluxo; se a regra mudar na API, os botões acompanham.
-- Cancelar pede confirmação.
-- A troca manda o status que está na tela (`from`). Se outra pessoa mudou o pedido antes, a API responde 409, aparece o aviso e o pedido é recarregado.
-- Pedido finalizado ou cancelado ganha um carimbo e fica sem botões.
+Uma linha do tempo mostra as 4 etapas com a atual destacada, e os itens aparecem com o preço pago (`unitPriceCents`), não o de hoje.
+
+Os botões de status vêm do `nextStatuses` da API. O front não repete a regra do fluxo, então se ela mudar na API os botões mudam junto. Cancelar pede confirmação. Cada troca manda o status que está na tela (`from`); se outra pessoa mexeu no pedido antes, a API responde 409, aparece o aviso e o pedido recarrega. Pedido finalizado ou cancelado fica sem botões e ganha um carimbo.
 
 ### Produtos e clientes
 
-Lista com busca e paginação, e um formulário que abre no topo para cadastrar ou editar.
+As duas telas são lista com busca e paginação e um formulário que abre no topo para cadastrar ou editar.
 
-- Produto: preço digitado em reais e enviado em centavos (`Math.round(preco * 100)`). Ativar/desativar direto na linha.
-- Cliente: telefone validado no front com a mesma regra da API (10 a 13 dígitos).
-- Erros de validação da API aparecem embaixo do campo correspondente (`applyServerErrors`), inclusive quando o nome do campo muda entre API e tela (`priceCents` → `price`).
+No produto, o preço é digitado em reais e vai em centavos (`Math.round(preco * 100)`), e ativar ou desativar é um clique na própria linha. No cliente, o telefone é validado com a mesma regra da API, de 10 a 13 dígitos. Nos dois, erro de validação da API aparece embaixo do campo certo (`applyServerErrors`), mesmo quando o nome muda entre API e tela, como `priceCents` e `price`.
 
 ## Peças compartilhadas
 
@@ -71,24 +57,14 @@ Lista com busca e paginação, e um formulário que abre no topo para cadastrar 
 
 ## Estados de tela
 
-Toda lista tem os quatro: carregando, erro (com "Tentar de novo"), vazia (com mensagem diferente para "sem registros" e "sem resultados para o filtro") e com dados. Durante uma recarga a tabela fica semitransparente em vez de sumir.
+Toda lista tem quatro estados: carregando, erro com "Tentar de novo", vazia e com dados. A lista vazia distingue "não tem nada cadastrado" de "nada bate com o filtro". Numa recarga a tabela fica semitransparente em vez de sumir, para a tela não pular.
 
 ## Visual
 
-O PDF não avalia design, mas o front não usa template pronto. A ideia é uma comanda de balcão:
+O PDF não avalia design, mas também não havia motivo para usar template pronto. O tema é comanda de balcão: fundo cor de papel com textura, texto em tinta escura e vermelho de carimbo como cor de destaque. Os títulos usam Bricolage Grotesque, o texto usa IBM Plex Sans, e todo número (preço, número do pedido) usa IBM Plex Mono, como numa comanda impressa. A comanda do novo pedido sobe por cima da linha do título, levemente torta e com a borda serrilhada, e a barra lateral tem borda picotada.
 
-- Fundo cor de papel com textura, texto em tinta escura, vermelho de carimbo como cor de destaque.
-- Fontes: Bricolage Grotesque nos títulos, IBM Plex Sans no texto, IBM Plex Mono em números (preço, número do pedido), como numa comanda impressa.
-- A comanda do novo pedido sobe por cima da linha do título e fica levemente inclinada, com borda serrilhada.
-- Barra lateral com borda picotada; carimbo de "Cancelado"/"Finalizado" no detalhe.
-
-Tudo em `src/styles.css`, com as cores em variáveis no topo.
+Está tudo em `src/styles.css`, com as cores em variáveis no topo.
 
 ## Acessibilidade
 
-- Todo campo tem `label`; campos com erro ganham borda e mensagem em texto, não só cor.
-- Status tem texto além da cor.
-- Link "Pular para o conteúdo", foco visível em tudo, navegação completa por teclado.
-- Link ativo do menu com `aria-current`.
-- Animações desligadas quando o sistema pede menos movimento (`prefers-reduced-motion`).
-- Layout funciona a partir de 390 px de largura; o menu vira barra no topo.
+Todo campo tem `label`, e campo com erro ganha mensagem em texto além da borda vermelha. Status também tem texto, não só cor. Há link para pular direto ao conteúdo, foco visível em todo elemento clicável, navegação completa por teclado e `aria-current` no item ativo do menu. Quem pede menos movimento no sistema (`prefers-reduced-motion`) não vê animação. A partir de 390 px de largura o layout funciona, com o menu virando uma barra no topo.

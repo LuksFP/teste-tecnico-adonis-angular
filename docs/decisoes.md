@@ -1,65 +1,49 @@
 # Decisões
 
-Cada decisão com o que foi escolhido, o que ficou de fora e por quê.
-
 ## Stack
 
-**AdonisJS 7 e Angular 22 (as versões atuais), rodando em Node 24.**
-Alternativa: AdonisJS 6 e Angular 20 no Node 20. Foi escolhida a versão atual porque a vaga é dessa stack e ninguém começa projeto novo em versão antiga. O custo é exigir Node 24, que está no `.nvmrc` e no README.
+A API usa AdonisJS 7 e o front usa Angular 22, as versões atuais, e as duas exigem Node 24. Dava para fazer em AdonisJS 6 e Angular 20 e rodar no Node 20, mas projeto novo não começa em versão velha, ainda mais numa vaga dessa stack. O custo é um passo a mais para quem avalia, e ele está no `.nvmrc` e no README.
 
-**SQLite.**
-O PDF deixa o banco livre e cita SQLite como opção. Ele não precisa de instalação, então quem avalia clona e roda. O acesso é todo pelo Lucid, então trocar para PostgreSQL muda a configuração, não o código ([banco-de-dados.md](banco-de-dados.md#trocar-de-banco)).
+O banco é SQLite. O PDF deixa a escolha livre e cita o SQLite entre as opções, e ele tem uma vantagem que pesa num teste: não precisa instalar nada, quem avalia clona e roda. Como todo acesso passa pelo Lucid, ir para PostgreSQL é mudar a conexão em `config/database.ts`, não o código ([banco-de-dados.md](banco-de-dados.md#trocar-de-banco)).
 
 ## Modelagem
 
-**Dinheiro em centavos, inteiro.**
-Alternativa: `decimal(10,2)`. No SQLite, decimal vira ponto flutuante, e no JavaScript também. Inteiro é exato em qualquer banco e em qualquer linguagem.
+Dinheiro é inteiro em centavos. A alternativa óbvia seria `decimal(10,2)`, só que no SQLite decimal vira ponto flutuante, e no JavaScript também, e ponto flutuante soma `0.1 + 0.2` como `0.30000000000000004`. Inteiro é exato em qualquer banco e em qualquer linguagem.
 
-**Preço copiado para o item do pedido.**
-É a regra 6. A alternativa (guardar só o `product_id` e ler o preço atual) é exatamente o que o PDF diz para não fazer.
+O item do pedido guarda uma cópia do preço. Guardar só o `product_id` e ler o preço atual seria exatamente o que a regra 6 proíbe.
 
-**Totais gravados, não calculados na leitura.**
-O pedido é um registro do que foi cobrado. Gravar evita recalcular a cada listagem e deixa o valor fixo mesmo se a regra de cálculo mudar um dia.
+Os totais também são gravados, e não calculados na leitura. O pedido é o registro do que foi cobrado, e deve continuar com o mesmo valor mesmo se um dia a forma de calcular mudar. De quebra, a listagem não recalcula nada.
 
-**Produto não se apaga, se desativa.**
-Apagar quebraria o histórico dos pedidos. O banco reforça com `RESTRICT`, e a API não tem rota de `DELETE`.
+Produto não se apaga, se desativa. Apagar quebraria o histórico dos pedidos em que ele aparece, então o banco impede (`RESTRICT`) e a API nem tem rota de `DELETE`.
 
-**Colunas declaradas nos models.**
-O AdonisJS 7 pode gerar os models a partir do banco. Declarar à mão deixa a modelagem visível no model e mostra o uso do ORM, que é um critério do PDF.
+Os models declaram as colunas à mão. O AdonisJS 7 consegue gerar isso a partir do banco, mas aí a modelagem fica escondida num arquivo gerado, e uso do ORM é um dos critérios do PDF.
 
 ## Arquitetura
 
-**Service só para pedidos, sem repository.**
-Clientes e produtos são cadastro sem regra; um service para eles repetiria o controller. Repository por cima do Lucid seria uma camada que só repassa chamadas, já que os models do Lucid são a camada de dados.
+Só o pedido tem service. Clientes e produtos são cadastro sem regra, e um service para eles só repetiria o controller. Também não há camada de repository: por cima do Lucid ela só repassaria chamadas, porque os models do Lucid já são a camada de dados.
 
-**Fluxo de status numa tabela (`app/domain/order_status.ts`).**
-Alternativa: `if`s espalhados no service. A tabela deixa o fluxo inteiro legível em 6 linhas, é testada sem banco e é a mesma fonte para a validação e para o `nextStatuses` que o front usa.
+O fluxo de status é uma tabela em `app/domain/order_status.ts`, não uma sequência de `if` dentro do service. Nessa tabela o fluxo inteiro cabe em 6 linhas, é testado sem banco e alimenta ao mesmo tempo a validação da troca e o `nextStatuses` que a API devolve.
 
-**A API diz os próximos status (`nextStatuses`).**
-Alternativa: o front conhecer o fluxo. Com a regra num lugar só, não existe o caso de o front mostrar um botão que a API vai recusar.
+Esse `nextStatuses` é o que decide os botões na tela do pedido. O front poderia conhecer o fluxo por conta própria, mas então existiriam duas cópias da regra, e cedo ou tarde o front mostraria um botão que a API recusa.
 
-**Proteção contra alteração simultânea.**
-Fora do PDF, mas é o problema real de um sistema de balcão com mais de um atendente. Duas partes: o `from` enviado pelo front e o `UPDATE` condicional. Detalhes em [regras-de-negocio.md](regras-de-negocio.md#dois-atendentes-no-mesmo-pedido).
+A proteção contra dois atendentes no mesmo pedido não está no PDF. Entrou porque é o problema real de um balcão com mais de uma pessoa atendendo, e custou pouco: o front manda o status que está vendo e o `UPDATE` só grava se o pedido ainda estiver nele ([regras-de-negocio.md](regras-de-negocio.md#dois-atendentes-no-mesmo-pedido)).
 
-**Um formato de erro para tudo.**
-Alternativa: deixar cada erro no formato padrão do framework. Com um formato só, o front tem um único lugar que lê erro (`ApiError`), e o `code` permite decidir o que fazer sem comparar texto de mensagem.
+Todo erro sai no mesmo formato, `{ error: { code, message, details } }`. Com os formatos padrão do framework, cada tipo de erro teria uma cara, e o front precisaria de um tratamento para cada. Assim existe um único lugar que lê erro no front (`ApiError`), e o `code` decide o que fazer sem ninguém comparar texto de mensagem.
 
-**Status 409 para conflito de estado, 422 para dado inválido.**
-422 significa "o que você mandou está errado". 409 significa "o que você mandou está certo, mas o pedido não está num estado que permita isso".
+422 e 409 não são a mesma coisa. 422 diz que o que foi enviado está errado. 409 diz que o que foi enviado está certo, mas o pedido não está num estado que permita aquilo.
 
 ## O que ficou de fora
 
-| Item | Motivo |
-|---|---|
-| Autenticação | O PDF não pede. O kit do AdonisJS vinha com login e sessão, e foi removido para não deixar código sem uso |
-| Excluir cliente/produto | Quebraria o histórico. Produto é desativado |
-| Editar itens de pedido já criado | O PDF não pede, e mudaria o valor que o cliente já viu |
-| Busca com autocomplete no novo pedido | Os seletores carregam até 100 clientes e 100 produtos, o que cobre uma empresa pequena. Com catálogo maior, seria o próximo passo |
-| Histórico de mudanças de status | Seria uma tabela `order_status_changes`. Útil, mas além do pedido |
+Autenticação ficou de fora porque o PDF não pede. O kit do AdonisJS vinha com login e sessão, e tirei tudo para não deixar código sem uso no repositório.
 
-## Interpretações do PDF
+Não há como excluir cliente nem produto, pelo motivo do histórico, e não há como editar os itens de um pedido já criado, porque isso mudaria um valor que o cliente já viu.
 
-1. **Status não pula etapa nem volta.** As setas do PDF descrevem uma sequência.
-2. **Finalizado não pode ser cancelado.** O PDF só diz que cancelado não volta. Cancelar pedido entregue seria estorno. Mudar isso é uma linha em `order_status.ts`.
-3. **Tela de clientes existe.** Não está na lista de telas do PDF, mas sem ela não há como cadastrar o cliente que o pedido exige.
-4. **Tela de detalhe do pedido existe.** É onde "consultar pedido" e "alterar status" da API aparecem para o usuário.
+Os seletores do novo pedido carregam até 100 clientes e 100 produtos. Para uma empresa pequena é suficiente. Com catálogo maior, o próximo passo seria um campo de busca com autocomplete, e depois dele um histórico de mudanças de status numa tabela `order_status_changes`.
+
+## Onde o PDF deixa margem
+
+As setas do fluxo (Pendente → Em preparação → Pronto → Finalizado) foram lidas como sequência obrigatória: pendente não vai direto para pronto, e nada volta.
+
+O PDF diz que cancelado não volta, mas não diz nada sobre cancelar um pedido finalizado. Tratei finalizado como final também, porque cancelar pedido entregue é estorno, outro processo. Se a leitura esperada for a outra, a mudança é uma linha em `order_status.ts`.
+
+As telas de clientes e de detalhe do pedido não estão na lista de telas. A primeira existe porque sem ela não há cliente para o pedido. A segunda é onde "consultar pedido" e "alterar status", que o PDF pede na API, chegam até quem usa o sistema.
