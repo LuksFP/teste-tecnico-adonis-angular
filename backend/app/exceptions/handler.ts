@@ -13,10 +13,7 @@ type ErrorBody = {
   }
 }
 
-/**
- * Every error leaves the API with the same shape:
- * `{ error: { code, message, details? } }`. Stack traces are only logged.
- */
+/** All errors go out as { error: { code, message, details? } }. Stack traces only go to the log. */
 export default class HttpExceptionHandler extends ExceptionHandler {
   protected debug = !app.inProduction
 
@@ -60,10 +57,7 @@ export default class HttpExceptionHandler extends ExceptionHandler {
       ]
     }
 
-    /**
-     * Framework errors below 500 (unknown route, too large payload...) are
-     * safe to expose.
-     */
+    /** Framework errors under 500 (unknown route, payload too large) are safe to show. */
     if (error instanceof Exception && error.status < 500) {
       return [
         error.status,
@@ -71,10 +65,7 @@ export default class HttpExceptionHandler extends ExceptionHandler {
       ]
     }
 
-    /**
-     * The body parser flags malformed JSON by attaching a 400 status to the
-     * native SyntaxError.
-     */
+    /** Malformed JSON: the body parser throws a SyntaxError with status 400. */
     if (error instanceof SyntaxError && 'status' in error && error.status === 400) {
       return [
         400,

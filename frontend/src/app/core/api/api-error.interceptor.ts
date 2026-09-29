@@ -5,9 +5,8 @@ import { ToastService } from '../notifications/toast.service';
 import { ApiError } from './api-error';
 
 /**
- * Turns every HTTP failure into an `ApiError`. Connection problems and
- * server errors get a toast here; validation and business errors are left
- * for the screen that made the request, since it knows where to show them.
+ * Every HTTP failure becomes an ApiError. Network and 5xx errors show a toast;
+ * validation and business errors are left to the screen that sent the request.
  */
 export const apiErrorInterceptor: HttpInterceptorFn = (request, next) => {
   const toasts = inject(ToastService);

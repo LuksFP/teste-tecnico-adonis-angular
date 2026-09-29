@@ -1,9 +1,6 @@
 import { HttpParams } from '@angular/common/http';
 
-/**
- * Builds query params skipping empty values, so filters that are not set
- * are simply left out of the URL.
- */
+/** Unset filters are left out of the URL. */
 export function toQueryParams(query: object): HttpParams {
   const entries: [string, unknown][] = Object.entries(query);
   let params = new HttpParams();

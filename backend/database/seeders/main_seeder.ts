@@ -5,10 +5,7 @@ import type Order from '#models/order'
 import Product from '#models/product'
 import OrderService from '#services/order_service'
 
-/**
- * Demo data. Orders go through OrderService so totals and price
- * snapshots follow exactly the same rules as the API.
- */
+/** Demo data. Orders go through OrderService, so they follow the API rules. */
 export default class extends BaseSeeder {
   async run() {
     if (await Customer.query().first()) {

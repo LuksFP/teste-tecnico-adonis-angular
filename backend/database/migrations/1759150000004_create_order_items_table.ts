@@ -23,10 +23,7 @@ export default class extends BaseSchema {
         .onDelete('RESTRICT')
         .index()
       table.integer('quantity').unsigned().notNullable()
-      /**
-       * Snapshot of the product price when the order was placed. Later price
-       * changes on the product must not affect existing orders.
-       */
+      /** Product price when the order was placed. Later price changes don't touch it. */
       table.integer('unit_price_cents').unsigned().notNullable()
       table.integer('total_cents').unsigned().notNullable()
 

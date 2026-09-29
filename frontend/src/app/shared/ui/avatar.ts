@@ -1,6 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 
-/** Warm tones from the app palette; the same name always gets the same one. */
+/** Palette tones; a name always maps to the same one. */
 const TONES = ['#c8412a', '#1d5f5a', '#8a5a00', '#2e6b1f', '#5b4a8a', '#3d3830'];
 
 @Component({

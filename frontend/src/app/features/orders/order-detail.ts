@@ -38,7 +38,7 @@ export class OrderDetail {
     stream: ({ params }) => this.ordersService.find(params.id),
   });
 
-  /** Moves forward first; canceling is shown apart as a destructive action. */
+  /** Cancel is rendered apart from the forward actions. */
   protected readonly forwardActions = computed(() =>
     (this.order.value()?.nextStatuses ?? []).filter((status) => status !== 'canceled'),
   );

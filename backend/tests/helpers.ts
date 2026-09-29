@@ -1,9 +1,7 @@
 import Customer from '#models/customer'
 import Product from '#models/product'
 
-/**
- * Small builders so each test only spells out the fields it cares about.
- */
+/** Builders so each test only sets the fields it cares about. */
 export function createCustomer(overrides: Partial<Pick<Customer, 'name' | 'phone'>> = {}) {
   return Customer.create({ name: 'Ana Souza', phone: '(13) 99812-4410', ...overrides })
 }

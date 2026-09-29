@@ -15,14 +15,10 @@ export default class OrderTransformer extends BaseTransformer<Order> {
         'createdAt',
         'updatedAt',
       ]),
-      /**
-       * Lets the client render only the status actions the API accepts.
-       */
+      /** The client builds the status buttons from this. */
       nextStatuses: [...allowedTransitions(this.resource.status)],
       customer: CustomerTransformer.transform(this.whenLoaded(this.resource.customer)),
-      /**
-       * Items embed their product, one level deeper than the default depth.
-       */
+      /** Nested transformers stop at depth 1 by default; items need 2 to include the product. */
       items: OrderItemTransformer.transform(this.whenLoaded(this.resource.items))?.depth(2),
     }
   }

@@ -19,10 +19,7 @@ export const createOrderValidator = vine.create({
 
 export const updateOrderStatusValidator = vine.create({
   status: vine.enum(ORDER_STATUSES),
-  /**
-   * Status the client was looking at. When sent, the change is refused if
-   * the order is no longer in it.
-   */
+  /** Status shown on the client. Refused with 409 if the order is no longer in it. */
   from: vine.enum(ORDER_STATUSES).optional(),
 })
 

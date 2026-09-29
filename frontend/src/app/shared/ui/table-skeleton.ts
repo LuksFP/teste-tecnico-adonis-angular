@@ -1,9 +1,6 @@
 import { Component, input } from '@angular/core';
 
-/**
- * Placeholder with the shape of the table that is loading, so the page
- * does not jump when the data arrives.
- */
+/** Loading placeholder with the table's shape, so the page doesn't jump. */
 @Component({
   selector: 'app-table-skeleton',
   template: `

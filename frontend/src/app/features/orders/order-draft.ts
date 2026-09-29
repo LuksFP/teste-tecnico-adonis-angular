@@ -15,10 +15,7 @@ function clampQuantity(quantity: number): number {
   return Math.min(MAX_QUANTITY, Math.max(MIN_QUANTITY, Math.trunc(quantity)));
 }
 
-/**
- * State of an order that is still being put together. Totals here are
- * only a preview: the API recalculates everything from its own prices.
- */
+/** Order being put together. Its total is a preview; the API recalculates it. */
 export class OrderDraft {
   private readonly lines = signal<DraftItem[]>([]);
 
@@ -29,7 +26,7 @@ export class OrderDraft {
     this.lines().reduce((sum, item) => sum + item.product.priceCents * item.quantity, 0),
   );
 
-  /** Adding a product that is already in the order just raises its quantity. */
+  /** Adding a product that is already there raises its quantity. */
   add(product: Product, quantity: number): void {
     const existing = this.lines().find((item) => item.product.id === product.id);
     if (existing) {

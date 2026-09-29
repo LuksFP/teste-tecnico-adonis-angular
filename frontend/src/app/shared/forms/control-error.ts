@@ -1,10 +1,7 @@
 import { AbstractControl, FormGroup } from '@angular/forms';
 import { ApiError } from '../../core/api/api-error';
 
-/**
- * Message for the first error of a control, shown only after the user
- * touched it. `server` errors come from the API validation response.
- */
+/** First error of a touched control. `server` holds messages from a 422. */
 export function controlError(control: AbstractControl): string | null {
   const errors = control.errors;
   if (!errors || !control.touched) return null;
@@ -20,10 +17,7 @@ export function controlError(control: AbstractControl): string | null {
   return 'Valor inválido.';
 }
 
-/**
- * Copies field errors from a 422 response onto the matching controls.
- * `fieldToControl` maps API field names that differ from control names.
- */
+/** Puts 422 field errors on the matching controls; `fieldToControl` renames fields. */
 export function applyServerErrors(
   form: FormGroup,
   error: ApiError,

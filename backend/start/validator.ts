@@ -22,10 +22,7 @@ declare module '@vinejs/vine/types' {
 
 VineDate.transform((value) => DateTime.fromJSDate(value))
 
-/**
- * Validation messages in Portuguese, since the API is consumed by a
- * Portuguese interface.
- */
+/** Validation messages in Portuguese, the language of the UI. */
 vine.messagesProvider = new SimpleMessagesProvider(
   {
     'required': 'O campo {{ field }} é obrigatório.',

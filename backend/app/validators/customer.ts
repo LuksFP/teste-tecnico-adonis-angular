@@ -2,10 +2,7 @@ import vine from '@vinejs/vine'
 import type { FieldContext } from '@vinejs/vine/types'
 import { paginationFields } from '#validators/shared'
 
-/**
- * Counts only the digits, so "(13) 99999-0000" and "13999990000" are
- * validated the same way.
- */
+/** Counts digits only, so "(13) 99999-0000" and "13999990000" are the same. */
 const digitCount = vine.createRule(
   (value: unknown, options: { min: number; max: number }, field: FieldContext) => {
     if (typeof value !== 'string') return

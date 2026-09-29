@@ -1,6 +1,6 @@
 /*
- * Comanda, visual de balcão: papel cru, tinta e um vermelho de carimbo.
- * Números (preço, nº do pedido) em mono, como numa comanda impressa.
+ * Order-slip look: paper background, dark ink, stamp red as the accent.
+ * Prices and order numbers use the mono font.
  */
 :root {
   --paper: #f5efe3;
@@ -30,8 +30,7 @@
   --font-body: 'IBM Plex Sans', 'Segoe UI', sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
-  /* Each kind of element gets its own corner: sheets of paper are square,
-     buttons and fields barely rounded, the toast is a torn-off ticket. */
+  /* Corners by element type: panels and tables square, fields and buttons almost square. */
   --radius-sheet: 0;
   --radius-field: 2px;
   --radius-button: 3px;
@@ -54,7 +53,7 @@ body {
 
 body {
   min-height: 100vh;
-  /* Fine grain so the background reads as paper, not a flat fill. */
+  /* SVG noise over the paper color. */
   background:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .11 0 0 0 0 .1 0 0 0 0 .08 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
     var(--paper);
@@ -133,7 +132,7 @@ select {
   background: var(--ink);
   color: var(--paper);
 }
-/* Perforated edge, like the tear line of an order pad. */
+/* Perforated right edge made of repeated dots. */
 .sidebar::after {
   content: '';
   position: absolute;
@@ -391,7 +390,7 @@ select {
     border-color var(--speed),
     box-shadow var(--speed);
 }
-/* The browser's blue clear button replaced by one in the page's ink. */
+/* Replaces the browser's blue clear button. */
 .input[type='search']::-webkit-search-cancel-button {
   -webkit-appearance: none;
   width: 14px;
@@ -587,7 +586,7 @@ select {
   cursor: pointer;
   transition: background var(--speed);
 }
-/* The row being pointed at gets the red margin mark of a checked item. */
+/* Hovered clickable row: accent bar on the left. */
 .table--clickable tbody tr:hover {
   background: var(--paper);
   box-shadow: inset 3px 0 0 var(--accent);
@@ -871,10 +870,7 @@ tr.is-muted td:first-child {
   -webkit-appearance: none;
 }
 
-/*
- * The receipt breaks out of the page grid: it is pulled up over the page
- * header rule and slightly rotated, like a slip pinned to the counter.
- */
+/* Overlaps the header rule and is rotated 0.6deg; static on small screens. */
 .receipt {
   position: sticky;
   top: 24px;
@@ -1069,9 +1065,10 @@ tr.is-muted td:first-child {
   }
 }
 
-/* ---------- Rows are "printed" ----------
- * Each row is revealed left to right, like the head of a receipt printer,
- * one after the other. It only runs when a table first renders. */
+/*
+ * ---------- Row entrance ----------
+ * Cells are revealed left to right, staggered per row. Only new rows animate.
+ */
 .table tbody tr td {
   animation: row-print 420ms steps(12, end) both;
 }

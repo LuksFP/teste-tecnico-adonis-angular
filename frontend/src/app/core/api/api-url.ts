@@ -1,5 +1,2 @@
-/**
- * Relative on purpose: in development `proxy.conf.json` forwards `/api`
- * to the AdonisJS server, so the browser never deals with CORS.
- */
+/** Relative: in dev, proxy.conf.json forwards /api to the AdonisJS server. */
 export const API_URL = '/api/v1';

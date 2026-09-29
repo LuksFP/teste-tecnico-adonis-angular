@@ -25,10 +25,7 @@ export class OrdersService {
     return this.http.post<{ data: Order }>(this.url, input).pipe(map((response) => response.data));
   }
 
-  /**
-   * `from` is the status shown on screen; the API refuses the change if the
-   * order has moved since, instead of acting on outdated information.
-   */
+  /** `from` is the status on screen; the API refuses the change if the order moved. */
   changeStatus(id: number, status: OrderStatus, from: OrderStatus): Observable<Order> {
     return this.http
       .patch<{ data: Order }>(`${this.url}/${id}/status`, { status, from })

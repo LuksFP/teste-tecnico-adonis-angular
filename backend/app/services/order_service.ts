@@ -54,9 +54,8 @@ export default class OrderService {
   }
 
   /**
-   * Creates the order and its items in a single transaction. Prices come
-   * from the database, never from the request, and are copied into each
-   * item so later price changes do not touch this order.
+   * Order and items are saved in one transaction. Prices come from the database,
+   * not the request, and are copied into the items (rule 6).
    */
   async create(input: CreateOrderInput): Promise<Order> {
     const quantities = new Map(input.items.map((item) => [item.productId, item.quantity]))
@@ -103,8 +102,8 @@ export default class OrderService {
   }
 
   /**
-   * `expected` is the status the person saw on screen. If the order moved
-   * since then, the change is refused so nobody acts on outdated information.
+   * `expected` is the status shown on the user's screen. If the order has moved
+   * since, the change is refused.
    */
   async changeStatus(id: number, status: OrderStatus, expected?: OrderStatus): Promise<Order> {
     const order = await Order.findOrFail(id)
@@ -117,10 +116,8 @@ export default class OrderService {
   }
 
   /**
-   * Moves an already loaded order to `status`. The UPDATE only matches while
-   * the row still has the status that was read, so when two people change the
-   * same order at the same time the second one gets a conflict instead of
-   * silently overwriting the first.
+   * The WHERE on the status that was read makes a concurrent change fail with a
+   * conflict instead of overwriting the other one.
    */
   async transition(order: Order, status: OrderStatus): Promise<void> {
     if (!canTransition(order.status, status)) {
@@ -143,10 +140,7 @@ export default class OrderService {
   }
 }
 
-/**
- * Knex returns the affected row count as a number or, on some drivers, as a
- * one-item array.
- */
+/** Knex returns the affected rows as a number, or a one-item array on some drivers. */
 function affectedRows(result: unknown): number {
   const value = Array.isArray(result) ? result[0] : result
   return typeof value === 'number' ? value : Number(value ?? 0)

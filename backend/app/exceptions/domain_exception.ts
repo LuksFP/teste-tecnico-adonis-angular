@@ -1,9 +1,6 @@
 import { Exception } from '@adonisjs/core/exceptions'
 
-/**
- * Base class for business rule violations. The global exception handler
- * turns them into `{ error: { code, message, details } }` responses.
- */
+/** Business rule violation. The handler renders it as { error: { code, message, details } }. */
 export default class DomainException extends Exception {
   static status = 422
 

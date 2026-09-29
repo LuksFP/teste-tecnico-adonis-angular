@@ -18,10 +18,7 @@ function toFieldErrors(details: unknown): FieldError[] {
   );
 }
 
-/**
- * Error thrown by every API call. It mirrors the `{ error: { code, message,
- * details } }` body returned by the backend.
- */
+/** Error thrown by every API call, read from { error: { code, message, details } }. */
 export class ApiError extends Error {
   constructor(
     readonly status: number,

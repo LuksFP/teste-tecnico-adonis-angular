@@ -48,10 +48,7 @@ export class OrdersPage {
     stream: ({ params }) => this.ordersService.list(params),
   });
 
-  /**
-   * How many orders are in each status, shown on the filter chips. Uses the
-   * `total` of a one-row page per status, so no extra endpoint is needed.
-   */
+  /** Count per status for the filter chips: the `total` of a one-row page each. */
   protected readonly counts = rxResource({
     stream: () =>
       forkJoin(

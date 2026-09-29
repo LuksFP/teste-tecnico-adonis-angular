@@ -22,9 +22,9 @@ export default await Env.create(new URL('../', import.meta.url), {
   APP_KEY: Env.schema.secret(),
   APP_URL: Env.schema.string({ format: 'url', tld: false }),
 
-  // Database: arquivo SQLite dentro de tmp/
+  // Database: SQLite file name inside tmp/
   DB_FILE: Env.schema.string.optional(),
 
-  // CORS: origens liberadas fora do modo dev, separadas por vírgula
+  // CORS: comma separated origins allowed outside dev mode
   CORS_ORIGIN: Env.schema.string.optional(),
 })

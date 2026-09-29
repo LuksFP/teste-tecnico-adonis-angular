@@ -1,18 +1,12 @@
 /**
- * Order lifecycle.
- *
- * pending → preparing → ready → completed
- *
- * Any order that is not finished yet can be canceled. "completed" and
- * "canceled" are final: once there, the status never changes again.
+ * pending → preparing → ready → completed. Anything not finished can be
+ * canceled; completed and canceled are final.
  */
 export const ORDER_STATUSES = ['pending', 'preparing', 'ready', 'completed', 'canceled'] as const
 
 export type OrderStatus = (typeof ORDER_STATUSES)[number]
 
-/**
- * How each status is written in messages shown to people.
- */
+/** Status names as they appear in error messages. */
 export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
   pending: 'Pendente',
   preparing: 'Em preparação',
