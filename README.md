@@ -11,6 +11,18 @@ Teste técnico para vaga de AdonisJS + Angular. Uma empresa pequena cadastra cli
 
 ## Como rodar
 
+### Com Docker
+
+```bash
+docker compose up --build
+```
+
+Abre em http://localhost:8080. Sobem a API e o front, as migrations rodam e o seed entra sozinho. Não precisa ter Node instalado. O banco fica num volume, então os pedidos continuam lá depois de um restart; `docker compose down -v` apaga tudo e volta ao seed.
+
+No container o front é o build de produção servido por nginx, que repassa `/api` para a API. É o mesmo papel do `proxy.conf.json` em desenvolvimento.
+
+### Sem Docker
+
 Requer **Node 24** (`nvm use` na raiz lê o `.nvmrc`). O AdonisJS 7 e o Angular 22 não rodam no Node 20.
 
 ```bash
@@ -58,9 +70,8 @@ Base: `/api/v1`. Respostas de sucesso vêm em `{ data }` (listas paginadas tamb�
 | POST | `/orders` | Cria pedido: `{ customerId, items: [{ productId, quantity }] }` |
 | GET | `/orders/:id` | Consulta pedido com cliente e itens |
 | PATCH | `/orders/:id/status` | Muda o status: `{ status, from? }` (`from` = status visto na tela) |
-| GET | `/health` | Status da API e do banco |
 
-`perPage` vai até 100 (padrão 10).
+`perPage` vai até 100 (padrão 10). Fora do `/api/v1`, `GET /health` responde o status da API e do banco.
 
 ## Onde está cada regra do PDF
 
